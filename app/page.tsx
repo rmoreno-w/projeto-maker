@@ -1,12 +1,9 @@
-import { Header } from '@/src/components/Header';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Home() {
     return (
         <>
-            <Header />
-
             <main className='bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] py-10 px-20 flex justify-between rounded-3xl'>
                 <div className='flex flex-col justify-between max-w-md'>
                     <p className='text-black text-2xl'>

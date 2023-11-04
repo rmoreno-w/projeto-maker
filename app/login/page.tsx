@@ -1,10 +1,6 @@
-import { Header } from '@/src/components/Header';
-
 export default function Home() {
     return (
         <>
-            <Header />
-
             <main className='bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] py-10 px-20 flex justify-center rounded-3xl'>
                 <div className='flex flex-col gap-6 min-w-[400px]'>
                     <label className='flex flex-col gap-2'>
