@@ -1,19 +1,14 @@
+import { Input } from '@/src/components/Input';
 import Link from 'next/link';
 
 export default function Home() {
     return (
         <>
-            <main className='bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] py-10 px-20 grid grid-cols-12 gap-5 rounded-3xl'>
+            <main className='bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] py-24 px-20 grid grid-cols-12 gap-5 rounded-3xl'>
                 <div className='flex flex-col gap-6 col-start-4 col-span-6'>
-                    <label className='flex flex-col gap-2'>
-                        Login
-                        <input className='border-2 bg-transparent border-gray-300 rounded-lg h-12' />
-                    </label>
+                    <Input label='Login' />
 
-                    <label className='flex flex-col gap-2'>
-                        Senha
-                        <input className='border-2 bg-transparent border-gray-300 rounded-lg h-12' />
-                    </label>
+                    <Input label='Senha' />
 
                     <Link
                         href='/profile'
