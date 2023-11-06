@@ -1,4 +1,5 @@
 import { Header } from '@/components/Header';
+import { AuthProvider } from '@/contexts/loginContext';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -12,11 +13,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang='en' className='bg-makerBg text-black'>
-            <body className={inter.className}>
-                <Header />
-                {children}
-            </body>
-        </html>
+        <AuthProvider>
+            <html lang='en' className='bg-makerBg text-black'>
+                <body className={inter.className}>
+                    <Header />
+                    {children}
+                </body>
+            </html>
+        </AuthProvider>
     );
 }
