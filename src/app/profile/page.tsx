@@ -1,7 +1,11 @@
+'use client';
 import { Input } from '@/components/Input';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Profile() {
+    const [x, setX] = useState('');
+
     return (
         <>
             <main className=' bg-makerYellow border-4 border-makerYellow mx-[120px] my-[60px] rounded-3xl overflow-hidden'>
@@ -17,11 +21,11 @@ export default function Profile() {
                     </div>
 
                     <div className='col-span-7 py-10 px-20 bg-makerBg flex flex-col gap-4'>
-                        <Input label='Nome' />
+                        <Input label='Nome' currentValue='Alexzander' onChangeValue={setX} disabled />
 
-                        <Input label='CPF' />
+                        <Input label='CPF' currentValue='123.123.123-22' onChangeValue={setX} disabled />
 
-                        <Input label='Email' />
+                        <Input label='Email' currentValue='x3pt0@gmail.com' onChangeValue={setX} disabled />
                     </div>
 
                     <div className='col-span-2 bg-makerBg'></div>
