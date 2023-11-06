@@ -1,4 +1,4 @@
-import { Input } from '@/src/components/Input';
+import { Input } from '@/components/Input';
 import Image from 'next/image';
 
 export default function Profile() {
