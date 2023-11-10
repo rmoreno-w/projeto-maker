@@ -3,13 +3,29 @@ import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import { useEffect, useState } from 'react';
 
+interface User {
+    id: number;
+    name: string;
+    street: string;
+    email: string;
+    cep: string;
+    district: string;
+    house_number: number;
+    phone_number: string;
+    city: string;
+    state: string;
+    complement?: string;
+    role: Array<string>;
+    activation_state: boolean;
+    unifei_registration_number: string;
+}
 export default function ManageUsers() {
     const { authData } = useAuth();
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState<User[]>([]);
 
     useEffect(() => {
         apiClient
-            .get('/users', {
+            .get<User[]>('/users', {
                 headers: {
                     Authorization: `Bearer ${authData.access_token}`,
                 },
@@ -65,14 +81,5 @@ export default function ManageUsers() {
                 </div>
             </main>
         </>
-    );
-}
-
-function UserComponent() {
-    return (
-        <p key={user.id}>
-            <span>Nome: {user.name}</span>
-            <span>Email: {user.email}</span>
-        </p>
     );
 }
