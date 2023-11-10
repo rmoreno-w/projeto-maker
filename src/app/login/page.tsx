@@ -11,13 +11,17 @@ export default function Home() {
     const [password, setPassword] = useState('');
     const router = useRouter();
 
-    async function handleButtonClick() {
+    async function handleLoginClick() {
         // console.log(`Emeiu ${email} senha ${password}`);
         if (email && password) {
             const result = await signIn({ email, password });
 
             if (result == '') router.push('/profile');
         }
+    }
+
+    async function handleSigninClick() {
+        router.push('/signin');
     }
 
     return (
@@ -29,15 +33,19 @@ export default function Home() {
                     <Input label='Senha' currentValue={password} onChangeValue={setPassword} />
 
                     <button
-                        className='flex justify-center align-middle border bg-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl'
-                        onClick={handleButtonClick}
+                        className='flex justify-center align-middle border bg-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl disabled:opacity-40'
+                        onClick={handleLoginClick}
+                        disabled={!email || !password}
                     >
                         Acessar Serviços
                     </button>
 
                     <div className='flex flex-col gap-2'>
                         <p className='text-center'>Ainda não possui cadastro?</p>
-                        <button className='border border-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl'>
+                        <button
+                            className='border border-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl'
+                            onClick={handleSigninClick}
+                        >
                             Criar Conta
                         </button>
                     </div>
