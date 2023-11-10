@@ -8,7 +8,7 @@ export function Header() {
     const currentRoute = usePathname();
 
     return (
-        <header className='bg-makerBg h-32 border border-b-2 border-b-makerYellow flex justify-between px-[120px] items-center rounded-b-3xl'>
+        <header className='bg-makerBg h-32 border border-b-2 border-b-makerYellow flex justify-between px-[120px] items-center rounded-b-3xl sticky top-0'>
             <Link href='/'>
                 <Image src='/maker_logo.svg' alt='logo' width={100} height={100} />
             </Link>

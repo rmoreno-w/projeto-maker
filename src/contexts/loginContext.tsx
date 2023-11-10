@@ -32,12 +32,8 @@ export function AuthProvider({ children }: authProviderProps) {
             console.log(`${email} e senha ${password}`);
             await apiClient
                 .post(
-                    '/members/login',
+                    '/users/login',
                     {
-                        //User
-                        //rom.uol@unif.ei 12345
-                        // login: 'x3pt0@gmail.com',
-                        // password: 'string',
                         username: email,
                         password,
                     },
@@ -56,7 +52,8 @@ export function AuthProvider({ children }: authProviderProps) {
                         email: '',
                         access_token,
                     });
-                });
+                })
+                .catch((e) => console.log(e));
             return '';
         } catch (error) {
             console.log(`Erro no login: ${error}`);

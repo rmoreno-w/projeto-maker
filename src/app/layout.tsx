@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <AuthProvider>
             <html lang='en' className='bg-makerBg text-black'>
-                <body className={inter.className}>
+                <body className={(inter.className, 'relative')}>
                     <Header />
                     {children}
                 </body>
