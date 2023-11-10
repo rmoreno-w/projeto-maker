@@ -27,6 +27,16 @@ function AdminLinks({ currentRoute }: LinksProps) {
     return (
         <>
             <Link
+                href='/manageUsers'
+                className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
+                    ${currentRoute == '/manageUsers' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
+            >
+                Gerenciar Usuários
+            </Link>
+
+            <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
+
+            <Link
                 href='/materials'
                 className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
                     ${currentRoute == '/materials' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}

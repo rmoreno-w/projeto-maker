@@ -21,9 +21,11 @@ export default function Home() {
     const [state, setState] = useState('');
     const [complement, setComplement] = useState('');
     const router = useRouter();
-    let accountCreationMessage = '';
+    const [accountCreationMessage, setAccountCreationMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     async function handleSignonClick() {
+        setIsLoading(true);
         // console.log(`Nome ${name}`);
         // console.log(`cpf ${cpf}`);
         // console.log(`email ${email}`);
@@ -36,8 +38,8 @@ export default function Home() {
         // console.log(`city ${city}`);
         // console.log(`state ${state}`);
         // console.log(`complement ${complement}`);
-        try {
-            apiClient.post('/users', {
+        apiClient
+            .post('/users', {
                 name,
                 cpf,
                 email,
@@ -54,15 +56,17 @@ export default function Home() {
                 city,
                 state,
                 complement,
+            })
+            .then(() => {
+                setAccountCreationMessage('Conta criada com sucesso! Redirecionando para pagina de login');
+                setTimeout(() => {
+                    router.push('/login');
+                }, 3000);
+            })
+            .catch((e) => {
+                console.log(e);
+                setAccountCreationMessage(`Oops, erro ao criar sua conta :( Descrição do erro: ${e}`);
             });
-            accountCreationMessage = 'Conta criada com sucesso! Redirecionando para pagina de login';
-            // setTimeout(() => {
-            //     router.push('/profile');
-            // }, 4000);
-        } catch (e) {
-            console.log(e);
-            accountCreationMessage = `Oops, erro ao criar sua conta :( Descrição do erro: ${e}`;
-        }
     }
 
     return (
@@ -119,6 +123,7 @@ export default function Home() {
                         //     !city ||
                         //     !state
                         // }
+                        disabled={isLoading}
                     >
                         Criar minha conta
                     </button>
