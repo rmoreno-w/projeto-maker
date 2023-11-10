@@ -3,11 +3,11 @@
 import { apiClient } from '@/services/axios';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
+export type roles = 'admin' | 'member' | 'customer' | '';
+
 interface authData {
-    name: string;
-    cpf: string;
-    email: string;
     access_token: string;
+    role: roles;
 }
 
 const AuthContext = createContext<any>(undefined);
@@ -21,9 +21,7 @@ export function useAuth() {
 }
 export function AuthProvider({ children }: authProviderProps) {
     const [authData, setAuth] = useState<authData>({
-        name: '',
-        cpf: '',
-        email: '',
+        role: '',
         access_token: '',
     });
 
@@ -46,11 +44,10 @@ export function AuthProvider({ children }: authProviderProps) {
                 .then((response) => {
                     console.log(response.data);
                     let access_token = response.data.access_token;
+                    let role = response.data.role;
                     setAuth({
-                        name: '',
-                        cpf: '',
-                        email: '',
                         access_token,
+                        role,
                     });
                 })
                 .catch((e) => console.log(e));
@@ -58,10 +55,8 @@ export function AuthProvider({ children }: authProviderProps) {
         } catch (error) {
             console.log(`Erro no login: ${error}`);
             setAuth({
-                name: '',
-                cpf: '',
-                email: '',
                 access_token: '',
+                role: '',
             });
 
             return 'Ops :( erro no login, por favor confirme seus dados';
@@ -70,10 +65,8 @@ export function AuthProvider({ children }: authProviderProps) {
 
     function signOut() {
         setAuth({
-            name: '',
-            cpf: '',
-            email: '',
             access_token: '',
+            role: '',
         });
     }
 

@@ -1,6 +1,6 @@
 'use client';
 import { Input } from '@/components/Input';
-import { useAuth } from '@/contexts/loginContext';
+import { roles, useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ export default function Profile() {
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [complement, setComplement] = useState('');
-    const [role, setRole] = useState('');
+    const [role, setRole] = useState<roles>('');
     const { authData } = useAuth();
     const [areFieldsEdited, setAreFieldsEdited] = useState(false);
     const [editedData, setEditedData] = useState({});
@@ -51,6 +51,7 @@ export default function Profile() {
         admin: 'Administrador',
         customer: 'Cliente',
         member: 'Membro',
+        '': '________',
     };
 
     async function updateUser() {
