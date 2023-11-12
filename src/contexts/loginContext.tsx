@@ -1,7 +1,8 @@
 'use client';
 
 import { apiClient } from '@/services/axios';
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
 export type roles = 'admin' | 'member' | 'customer' | '';
 
@@ -19,6 +20,29 @@ interface authProviderProps {
 export function useAuth() {
     return useContext(AuthContext);
 }
+function useProtectedRoute(authData: authData) {
+    const currentRoute = usePathname();
+    const router = useRouter();
+    const localStorageToken = localStorage.getItem('authToken');
+
+    useEffect(() => {
+        const inAuthGroup = currentRoute === '/login' || currentRoute === '/register' || currentRoute === '/';
+
+        if (
+            // If the user is not signed in and the current route is not anything in the auth group.
+            !authData.access_token &&
+            !localStorageToken &&
+            !inAuthGroup
+        ) {
+            // Redirect to the initial page.
+            router.replace('/');
+        } else if (authData.role !== '' && inAuthGroup) {
+            // Redirect away from the sign-in page.
+            router.replace('/profile');
+        }
+    }, [authData, currentRoute]); // Listens for any change in user state or path change
+}
+
 export function AuthProvider({ children }: authProviderProps) {
     const [authData, setAuth] = useState<authData>({
         role: '',
@@ -45,6 +69,8 @@ export function AuthProvider({ children }: authProviderProps) {
                     console.log(response.data);
                     let access_token = response.data.access_token;
                     let role = response.data.role;
+                    localStorage.setItem('authRole', role);
+                    localStorage.setItem('authToken', access_token);
                     setAuth({
                         access_token,
                         role,
@@ -64,11 +90,15 @@ export function AuthProvider({ children }: authProviderProps) {
     }
 
     function signOut() {
+        localStorage.removeItem('authRole');
+        localStorage.removeItem('authToken');
         setAuth({
             access_token: '',
             role: '',
         });
     }
+
+    useProtectedRoute(authData);
 
     return (
         <AuthContext.Provider

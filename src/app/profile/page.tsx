@@ -23,10 +23,15 @@ export default function Profile() {
     const [editedData, setEditedData] = useState({});
 
     useEffect(() => {
+        const alternativeTokenLocalStorage = localStorage.getItem('authToken');
+
         apiClient
             .get('/users/find/info', {
                 headers: {
-                    Authorization: `Bearer ${authData.access_token}`,
+                    Authorization:
+                        authData.access_token !== ''
+                            ? `Bearer ${authData.access_token}`
+                            : `Bearer ${alternativeTokenLocalStorage}`,
                 },
             })
             .then((response) => {
@@ -60,10 +65,15 @@ export default function Profile() {
         //     console.log(key);
         // }
         console.log(editedData);
+        const alternativeTokenLocalStorage = localStorage.getItem('authToken');
+
         apiClient
             .patch('/users', editedData, {
                 headers: {
-                    Authorization: `Bearer ${authData.access_token}`,
+                    Authorization:
+                        authData.access_token !== ''
+                            ? `Bearer ${authData.access_token}`
+                            : `Bearer ${alternativeTokenLocalStorage}`,
                 },
             })
             .then((result) => {

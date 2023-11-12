@@ -20,8 +20,8 @@ export default function Home() {
         }
     }
 
-    async function handleSigninClick() {
-        router.push('/signin');
+    async function handleRegisterClick() {
+        router.push('/register');
     }
 
     return (
@@ -44,7 +44,7 @@ export default function Home() {
                         <p className='text-center'>Ainda não possui cadastro?</p>
                         <button
                             className='border border-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl'
-                            onClick={handleSigninClick}
+                            onClick={handleRegisterClick}
                         >
                             Criar Conta
                         </button>

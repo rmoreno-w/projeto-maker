@@ -23,12 +23,16 @@ export default function ManageUsers() {
     const { authData } = useAuth();
     const [customers, setCustomers] = useState<User[]>([]);
     const [members, setMembers] = useState<User[]>([]);
+    const alternativeTokenLocalStorage = authData.access_token == '' && localStorage.getItem('authToken');
 
     useEffect(() => {
         apiClient
             .get<User[]>('/users', {
                 headers: {
-                    Authorization: `Bearer ${authData.access_token}`,
+                    Authorization:
+                        authData.access_token !== ''
+                            ? `Bearer ${authData.access_token}`
+                            : `Bearer ${alternativeTokenLocalStorage}`,
                 },
             })
             .then((response) => {
