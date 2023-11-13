@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import { useEffect, useState } from 'react';
 
+type userTypes = 'member' | 'admin' | 'customer';
+
 interface User {
     id: number;
     name: string;
@@ -15,7 +17,7 @@ interface User {
     city: string;
     state: string;
     complement?: string;
-    role: Array<string>;
+    role: Array<userTypes>;
     activation_state: boolean;
     unifei_registration_number: string;
 }
@@ -73,48 +75,77 @@ export default function ManageUsers() {
             .catch((e) => console.log(e));
     }
 
+    const translatedRoles = {
+        member: 'Membro',
+        admin: 'Administrador',
+        customer: 'Cliente',
+    };
+
     return (
         <>
             <main className=' bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] rounded-3xl overflow-hidden'>
                 <div className='py-10 px-24 flex flex-col justify-center gap-3'>
                     {members.length != 0 ? (
                         <div className='flex flex-col gap-4'>
-                            <h2 className='text-[20px] font-semibold'>Membros</h2>
-                            {members.map((member) => (
-                                <ul key={member.id} className='flex gap-2 pl-4 h-10 items-center'>
-                                    <div className='bg-makerYellow h-2 w-2 rounded' />
-                                    <li>Nome: {member.name}</li>
-                                    <li>Email: {member.email}</li>
-                                    <button
-                                        className='bg-[#BC2119] px-2 py-1 rounded text-makerBg'
-                                        onClick={() => removeUser(member.id, 'member')}
-                                    >
-                                        Deletar Membro
-                                    </button>
-                                </ul>
-                            ))}
+                            <h2 className='text-[24px] font-bold'>Membros</h2>
+                            <div className='grid grid-cols-4 w-full gap-2 text-center'>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Nome</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Email</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Função</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Deletar Membro</p>
+
+                                {members.map((member) => (
+                                    <>
+                                        <p className='border-b border-makerLightGray py-2'>{member.name}</p>
+                                        <p className='border-b border-makerLightGray py-2'>{member.email}</p>
+                                        <p className='border-b border-makerLightGray py-2'>
+                                            {translatedRoles[member.role[0]]}
+                                        </p>
+                                        <button
+                                            className='border-b border-makerLightGray py-2 flex justify-center'
+                                            onClick={() => removeUser(member.id, 'member')}
+                                        >
+                                            <span className='bg-[#BC2119] h-8 w-8 font-bold rounded-xl text-makerBg flex items-center justify-center text-center'>
+                                                x
+                                            </span>
+                                        </button>
+                                    </>
+                                ))}
+                            </div>
                         </div>
                     ) : (
                         <p>Ainda não há membros cadastrados</p>
                     )}
                 </div>
+
                 <div className='py-10 px-24 flex flex-col justify-center gap-3'>
                     {customers.length != 0 ? (
                         <div className='flex flex-col gap-4'>
-                            <h2 className='text-[20px] font-semibold'>Clientes</h2>
-                            {customers.map((customer) => (
-                                <ul key={customer.id} className='flex gap-2 pl-4 h-10 items-center'>
-                                    <div className='bg-makerYellow h-2 w-2 rounded' />
-                                    <li>Nome: {customer.name}</li>
-                                    <li>Email: {customer.email}</li>
-                                    <button
-                                        className='bg-[#BC2119] px-2 py-1 rounded text-makerBg'
-                                        onClick={() => removeUser(customer.id, 'customer')}
-                                    >
-                                        Deletar Cliente
-                                    </button>
-                                </ul>
-                            ))}
+                            <h2 className='text-[24px] font-bold'>Clientes</h2>
+                            <div className='grid grid-cols-4 w-full gap-2 text-center'>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Nome</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Email</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Função</p>
+                                <p className='border-b-2 py-2 border-makerGray font-bold'>Deletar Cliente</p>
+
+                                {customers.map((customer) => (
+                                    <>
+                                        <p className='border-b border-makerLightGray py-2'>{customer.name}</p>
+                                        <p className='border-b border-makerLightGray py-2'>{customer.email}</p>
+                                        <p className='border-b border-makerLightGray py-2'>
+                                            {translatedRoles[customer.role[0]]}
+                                        </p>
+                                        <button
+                                            className='border-b border-makerLightGray py-2 flex justify-center'
+                                            onClick={() => removeUser(customer.id, 'customer')}
+                                        >
+                                            <span className='bg-[#BC2119] h-8 w-8 font-bold rounded-xl text-makerBg flex items-center justify-center text-center'>
+                                                x
+                                            </span>
+                                        </button>
+                                    </>
+                                ))}
+                            </div>
                         </div>
                     ) : (
                         <p>Ainda não há clientes cadastrados</p>

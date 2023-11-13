@@ -17,6 +17,8 @@ const config: Config = {
                 makerYellow: '#F3B700',
                 makerBg: '#FAF8F2',
                 makerLinkDecoration: '#F3E1AA',
+                makerGray: '#8AA1B1',
+                makerLightGray: '#E3DBDB',
             },
         },
     },
