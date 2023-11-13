@@ -23,7 +23,7 @@ export function useAuth() {
 function useProtectedRoute(authData: authData) {
     const currentRoute = usePathname();
     const router = useRouter();
-    const localStorageToken = localStorage.getItem('authToken');
+    const localStorageToken = typeof window !== undefined && localStorage.getItem('authToken');
 
     useEffect(() => {
         const inAuthGroup = currentRoute === '/login' || currentRoute === '/register' || currentRoute === '/';
