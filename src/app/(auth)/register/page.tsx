@@ -3,7 +3,7 @@ import { Input } from '@/components/Input';
 import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function Home() {
     const { authData, signIn } = useAuth();
@@ -23,6 +23,7 @@ export default function Home() {
     const router = useRouter();
     const [accountCreationMessage, setAccountCreationMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const dialogRef = useRef<HTMLDialogElement>(null);
 
     async function handleSignonClick() {
         setIsLoading(true);
@@ -59,6 +60,7 @@ export default function Home() {
             })
             .then(() => {
                 setAccountCreationMessage('Conta criada com sucesso! Redirecionando para pagina de login');
+                dialogRef.current?.showModal();
                 setTimeout(() => {
                     router.push('/login');
                 }, 3000);
@@ -66,6 +68,7 @@ export default function Home() {
             .catch((e) => {
                 console.log(e);
                 setAccountCreationMessage(`Oops, erro ao criar sua conta :( Descrição do erro: ${e}`);
+                dialogRef.current?.showModal();
             });
     }
 
@@ -127,7 +130,26 @@ export default function Home() {
                     >
                         Criar minha conta
                     </button>
-                    {accountCreationMessage && <h1>{accountCreationMessage}</h1>}
+                    <dialog
+                        onClose={() => dialogRef.current?.close()}
+                        ref={dialogRef}
+                        className='backdrop:bg-slate-900/60 p-10 bg-makerBg rounded-lg open:flex open:flex-col open:gap-8 open:items-center'
+                        // open
+                        // https://blog.logrocket.com/creating-reusable-pop-up-modal-react/
+                    >
+                        <h1 className='text-lg'>{accountCreationMessage}</h1>
+
+                        <button
+                            onClick={() => {
+                                accountCreationMessage.includes('sucesso')
+                                    ? router.push('/login')
+                                    : dialogRef.current?.close();
+                            }}
+                            className='px-4 py-2 bg-makerYellow rounded-lg w-[50%]'
+                        >
+                            Ok
+                        </button>
+                    </dialog>
                 </div>
             </main>
         </>
