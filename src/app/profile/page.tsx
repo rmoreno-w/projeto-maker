@@ -3,7 +3,7 @@ import { Input } from '@/components/Input';
 import { roles, useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Profile() {
     const [name, setName] = useState('');
@@ -21,6 +21,22 @@ export default function Profile() {
     const { authData } = useAuth();
     const [areFieldsEdited, setAreFieldsEdited] = useState(false);
     const [editedData, setEditedData] = useState({});
+    const dialogRef = useRef<HTMLDialogElement>(null);
+
+    // useLayoutEffect(() => {
+    //     dialogRef.current?.showModal();
+    // }, [dialogRef]);
+
+    // let alternativeTokenLocalStorage = localStorage.getItem('authToken');
+    // const trys = await fetch(`http://localhost:8000/users/find/info`, {
+    //     headers: {
+    //         Authorization:
+    //             authData.access_token !== ''
+    //                 ? `Bearer ${authData.access_token}`
+    //                 : `Bearer ${alternativeTokenLocalStorage}`,
+    //     },
+    // });
+    // console.log(trys);
 
     useEffect(() => {
         const alternativeTokenLocalStorage = localStorage.getItem('authToken');
@@ -119,6 +135,21 @@ export default function Profile() {
                                 setEditedData({ ...editedData, phone_number: e });
                             }}
                         />
+                        <button onClick={() => dialogRef.current?.showModal()}>Abrir modal</button>
+                        <dialog
+                            onClose={() => dialogRef.current?.close()}
+                            ref={dialogRef}
+                            className='backdrop:bg-slate-900/60 p-10 bg-makerBg rounded-lg'
+                            // open
+                            // https://blog.logrocket.com/creating-reusable-pop-up-modal-react/
+                        >
+                            <button
+                                onClick={() => dialogRef.current?.close()}
+                                className='px-4 py-2 bg-makerYellow rounded-lg'
+                            >
+                                Fechar Modal
+                            </button>
+                        </dialog>
                     </div>
                     <div className='col-span-4 py-10 px-20 bg-makerBg flex flex-col gap-4'>
                         <h2 className='text-[20px] font-semibold'>Endereço</h2>

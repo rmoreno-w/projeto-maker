@@ -23,7 +23,7 @@ export function useAuth() {
 function useProtectedRoute(authData: authData) {
     const currentRoute = usePathname();
     const router = useRouter();
-    const localStorageToken = typeof window !== undefined && localStorage.getItem('authToken');
+    const localStorageToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : '';
 
     useEffect(() => {
         const inAuthGroup = currentRoute === '/login' || currentRoute === '/register' || currentRoute === '/';
@@ -36,7 +36,7 @@ function useProtectedRoute(authData: authData) {
         ) {
             // Redirect to the initial page.
             router.replace('/');
-        } else if (authData.role !== '' && inAuthGroup) {
+        } else if (authData.role !== '' || (localStorageToken !== '' && inAuthGroup)) {
             // Redirect away from the sign-in page.
             router.replace('/profile');
         }
