@@ -30,7 +30,7 @@ export default function Home() {
                 <div className='flex flex-col gap-6 col-start-4 col-span-6'>
                     <Input label='Login' currentValue={email} onChangeValue={setEmail} />
 
-                    <Input label='Senha' currentValue={password} onChangeValue={setPassword} />
+                    <Input label='Senha' currentValue={password} onChangeValue={setPassword} type='password' />
 
                     <button
                         className='flex justify-center align-middle border bg-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl disabled:opacity-40'
