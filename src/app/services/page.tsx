@@ -5,23 +5,21 @@ import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import { useEffect, useRef, useState } from 'react';
 
-interface Material {
+interface Service {
     id: number;
     name: string;
     description: string;
-    quantity: number;
-    unit: string;
+    base_price: number;
 }
 
-export default function Materials() {
+export default function Services() {
     const { authData } = useAuth();
-    const [materials, setMaterials] = useState<Material[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
 
-    const [dialogMaterialId, setDialogMaterialId] = useState(0);
-    const [dialogMaterialName, setDialogMaterialName] = useState('');
-    const [dialogMaterialDescription, setDialogMaterialDescription] = useState('');
-    const [dialogMaterialQuantity, setDialogMaterialQuantity] = useState('');
-    const [dialogMaterialUnit, setDialogMaterialUnit] = useState('');
+    const [dialogServiceId, setDialogServiceId] = useState(0);
+    const [dialogServiceName, setDialogServiceName] = useState('');
+    const [dialogServiceDescription, setDialogServiceDescription] = useState('');
+    const [dialogServiceBasePrice, setDialogServiceBasePrice] = useState('');
     const [isDialogEditing, setIsDialogEditing] = useState(false);
     const [isAnyFieldEdited, setIsAnyFieldEdited] = useState(false);
     const [editedFields, setEditFields] = useState({});
@@ -30,16 +28,17 @@ export default function Materials() {
 
     useEffect(() => {
         if (isDialogEditing == true) {
-            let originalObject = materials.find((material) => material.id == dialogMaterialId);
+            let originalObject = services.find((service) => service.id == dialogServiceId);
 
             const newEditingObject = {
-                name: dialogMaterialName !== originalObject?.name && dialogMaterialName,
-                description: dialogMaterialDescription !== originalObject?.description && dialogMaterialDescription,
-                quantity: Number(dialogMaterialQuantity) !== originalObject?.quantity && Number(dialogMaterialQuantity),
-                unit: dialogMaterialUnit !== originalObject?.unit && dialogMaterialUnit,
+                name: dialogServiceName !== originalObject?.name && dialogServiceName,
+                description: dialogServiceDescription !== originalObject?.description && dialogServiceDescription,
+                base_price:
+                    Number(dialogServiceBasePrice) !== Number(originalObject?.base_price) / 100 &&
+                    Number(dialogServiceBasePrice),
             };
 
-            let currentlyEditedFields: Partial<Material> = {};
+            let currentlyEditedFields: Partial<Service> = {};
             for (let [key, value] of Object.entries(newEditingObject)) {
                 // console.log(value);
                 if (value !== false) {
@@ -56,11 +55,11 @@ export default function Materials() {
                 setIsAnyFieldEdited(false);
             }
         }
-    }, [dialogMaterialDescription, dialogMaterialName, dialogMaterialQuantity, dialogMaterialUnit]);
+    }, [dialogServiceName, dialogServiceDescription, dialogServiceBasePrice]);
 
     useEffect(() => {
         apiClient
-            .get<Material[]>('/materials', {
+            .get<Service[]>('/services', {
                 headers: {
                     Authorization: `Bearer ${authData.access_token}`,
                     // authData.access_token !== ''
@@ -70,84 +69,25 @@ export default function Materials() {
             })
             .then((response) => {
                 console.log(response.data);
-                setMaterials(response.data);
+                setServices(response.data);
             })
             .catch((e) => {
                 console.log(e);
             });
     }, []);
 
-    function openCreateMaterialModal() {
-        setDialogMaterialId(0);
-        setDialogMaterialName('');
-        setDialogMaterialDescription('');
-        setDialogMaterialQuantity('');
-        setDialogMaterialUnit('');
+    function openCreateServiceModal() {
+        setDialogServiceId(0);
+        setDialogServiceName('');
+        setDialogServiceDescription('');
+        setDialogServiceBasePrice('');
         editDialogRef.current?.showModal();
     }
 
-    function showMaterialDetails(id: number) {
-        const foundMaterial = materials.find((material) => material.id == id);
-
-        setDialogMaterialName(foundMaterial!.name);
-        setDialogMaterialDescription(foundMaterial!.description);
-        setDialogMaterialQuantity(String(foundMaterial!.quantity));
-        setDialogMaterialUnit(foundMaterial!.unit);
-        setDialogMaterialId(foundMaterial!.id);
-
-        editDialogRef.current?.showModal();
-        setIsDialogEditing(true);
-    }
-
-    async function updateMaterial() {
-        apiClient
-            .patch(`/materials/${dialogMaterialId}`, editedFields, {
-                headers: { Authorization: `Bearer ${authData.access_token}` },
-            })
-            .then((data) => {
-                setEditFields(false);
-                setIsDialogEditing(false);
-
-                const updatedMaterials = materials.map((material) => {
-                    return material.id == dialogMaterialId ? { ...material, ...editedFields } : material;
-                });
-
-                setMaterials(updatedMaterials);
-                // console.log(updatedMaterials);
-
-                editDialogRef.current?.close();
-            })
-            .catch((e) => console.log(e));
-    }
-
-    async function createNewMaterial() {
-        const newMaterial = {
-            name: dialogMaterialName,
-            description: dialogMaterialDescription,
-            quantity: Number(dialogMaterialQuantity),
-            unit: dialogMaterialUnit,
-        };
-        apiClient
-            .post(`/materials/`, newMaterial, {
-                headers: { Authorization: `Bearer ${authData.access_token}` },
-            })
-            .then((data) => {
-                setEditFields(false);
-
-                const newMaterialToInsert = { ...newMaterial, id: data.id };
-                const updatedMaterials = [...materials, newMaterialToInsert];
-                setMaterials(updatedMaterials);
-
-                // console.log(newMaterial);
-                editDialogRef.current?.close();
-            })
-            .catch((e) => console.log(e));
-    }
-
-    function removeMaterial() {
+    function removeService() {
         // console.log(`id: ${userId}, type: ${userType}`);
         apiClient
-            .delete(`/materials/${dialogMaterialId}`, {
+            .delete(`/services/${dialogServiceId}`, {
                 headers: {
                     Authorization: `Bearer ${authData.access_token}`,
                 },
@@ -155,9 +95,9 @@ export default function Materials() {
             .then((result) => {
                 console.log(result);
 
-                const updatedMaterialsList = materials.filter((material) => material.id != dialogMaterialId);
+                const updatedMaterialsList = services.filter((service) => service.id != dialogServiceId);
                 // console.log(typeof updatedCustomersList);
-                setMaterials(updatedMaterialsList);
+                setServices(updatedMaterialsList);
                 // setAreFieldsEdited(false);}
                 editDialogRef.current?.close();
             })
@@ -166,14 +106,75 @@ export default function Materials() {
             });
     }
 
+    function showServiceDetails(id: number) {
+        console.log(services);
+        console.log(id);
+        const foundService = services.find((service) => service.id == id);
+
+        setDialogServiceName(foundService!.name);
+        setDialogServiceDescription(foundService!.description);
+        setDialogServiceBasePrice(String(foundService!.base_price / 100));
+        setDialogServiceId(foundService!.id);
+
+        editDialogRef.current?.showModal();
+        setIsDialogEditing(true);
+    }
+
+    async function updateService() {
+        apiClient
+            .patch(`/services/${dialogServiceId}`, editedFields, {
+                headers: { Authorization: `Bearer ${authData.access_token}` },
+            })
+            .then((data) => {
+                setEditFields(false);
+                setIsDialogEditing(false);
+
+                const updatedServices = services.map((service) => {
+                    // if (service.id == dialogServiceId) console.log(editedFields!['base_price']);
+                    return service.id == dialogServiceId
+                        ? { ...service, ...editedFields, base_price: editedFields!['base_price'] * 100 }
+                        : service;
+                });
+
+                setServices(updatedServices);
+                // console.log(updatedMaterials);
+
+                editDialogRef.current?.close();
+            })
+            .catch((e) => console.log(e));
+    }
+
+    async function createNewService() {
+        const newService = {
+            name: dialogServiceName,
+            description: dialogServiceDescription,
+            base_price: Number(dialogServiceBasePrice),
+        };
+        apiClient
+            .post(`/services/`, newService, {
+                headers: { Authorization: `Bearer ${authData.access_token}` },
+            })
+            .then((data) => {
+                setEditFields(false);
+
+                const newServiceToInsert = { ...newService, id: data.id };
+                const updatedServices = [...services, newServiceToInsert];
+                setServices(updatedServices);
+
+                // console.log(newMaterial);
+                editDialogRef.current?.close();
+            })
+            .catch((e) => console.log(e));
+    }
+
     return (
         <main className=' bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] rounded-3xl overflow-hidden'>
             <div className='py-10 px-24 flex flex-col justify-center gap-3'>
                 <div>
-                    <h1 className='text-[24px] font-bold'>Materiais</h1>{' '}
+                    <h1 className='text-[24px] font-bold'>Serviços</h1>{' '}
                     {authData.role === 'admin' && (
                         <button
-                            onClick={openCreateMaterialModal}
+                            onClick={openCreateServiceModal}
                             className='hover:underline no-underline hover:decoration-2 hover:underline-offset-4 decoration-makerYellow transition-all'
                         >
                             + Criar
@@ -181,34 +182,34 @@ export default function Materials() {
                     )}
                 </div>
 
-                {materials.length != 0 ? (
+                {services.length != 0 ? (
                     <div className='flex flex-col gap-4'>
                         <div className='grid grid-cols-2 w-full gap-2 text-center'>
                             <p className='border-b-2 py-2 border-makerGray font-bold'>Nome</p>
                             <p className='border-b-2 py-2 border-makerGray font-bold'>Descrição</p>
 
-                            {materials.map((material) => (
+                            {services.map((service) => (
                                 <>
                                     <p
-                                        key={material.id + material.name}
+                                        key={service.id + service.name}
                                         className='border-b border-makerLightGray py-2 hover:cursor-pointer'
-                                        onClick={() => showMaterialDetails(material.id)}
+                                        onClick={() => showServiceDetails(service.id)}
                                     >
-                                        {material.name}
+                                        {service.name}
                                     </p>
                                     <p
-                                        key={material.id + material.description}
+                                        key={service.id + service.description}
                                         className='border-b border-makerLightGray py-2 hover:cursor-pointer truncate'
-                                        onClick={() => showMaterialDetails(material.id)}
+                                        onClick={() => showServiceDetails(service.id)}
                                     >
-                                        {material.description}
+                                        {service.description}
                                     </p>
                                 </>
                             ))}
                         </div>
                     </div>
                 ) : (
-                    <p>Ainda não há materiais cadastrados</p>
+                    <p>Ainda não há serviços cadastrados</p>
                 )}
             </div>
 
@@ -222,46 +223,47 @@ export default function Materials() {
                 className='backdrop:bg-slate-900/80 p-10 bg-makerBg rounded-lg open:flex open:flex-col open:gap-8'
             >
                 <strong className='text-lg text-center decoration-2 underline-offset-8 decoration-makerYellow underline'>
-                    Detalhes do material
+                    Detalhes do serviço
                 </strong>
 
                 <div className='flex flex-col gap-4 text-ellipsis'>
-                    <Input currentValue={dialogMaterialName} label='Nome:' onChangeValue={setDialogMaterialName} />
                     <Input
-                        currentValue={dialogMaterialDescription}
+                        currentValue={dialogServiceName}
+                        label='Nome:'
+                        onChangeValue={setDialogServiceName}
+                        disabled={authData.role == 'customer'}
+                    />
+                    <Input
+                        currentValue={dialogServiceDescription}
                         label='Descrição:'
-                        onChangeValue={setDialogMaterialDescription}
+                        onChangeValue={setDialogServiceDescription}
+                        disabled={authData.role == 'customer'}
                     />
                     <Input
-                        currentValue={dialogMaterialQuantity}
+                        currentValue={dialogServiceBasePrice}
                         type='number'
-                        label='Quantidade:'
-                        onChangeValue={setDialogMaterialQuantity}
+                        label='Preço base:'
+                        onChangeValue={setDialogServiceBasePrice}
+                        disabled={authData.role == 'customer'}
                     />
-                    <Input currentValue={dialogMaterialUnit} label='Unidade:' onChangeValue={setDialogMaterialUnit} />
                 </div>
 
                 <div className='flex gap-4'>
                     {!isDialogEditing && (
                         <button
                             className='px-4 py-2 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
-                            disabled={
-                                !dialogMaterialName ||
-                                !dialogMaterialDescription ||
-                                !dialogMaterialQuantity ||
-                                !dialogMaterialUnit
-                            }
-                            onClick={() => createNewMaterial()}
+                            disabled={!dialogServiceName || !dialogServiceDescription || !dialogServiceBasePrice}
+                            onClick={() => createNewService()}
                         >
-                            Criar Material
+                            Criar Serviço
                         </button>
                     )}
-                    {isDialogEditing && (
+                    {isDialogEditing && authData.role != 'customer' && (
                         <>
                             <button
                                 className='px-4 py-2 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
                                 disabled={!isAnyFieldEdited}
-                                onClick={() => updateMaterial()}
+                                onClick={() => updateService()}
                             >
                                 Salvar Edição
                             </button>
@@ -269,9 +271,9 @@ export default function Materials() {
                             {authData.role === 'admin' && (
                                 <button
                                     className='px-4 py-2 bg-[#BC2119] rounded-lg w-[50%] text-makerBg'
-                                    onClick={removeMaterial}
+                                    onClick={removeService}
                                 >
-                                    Remover Material
+                                    Remover Serviço
                                 </button>
                             )}
                         </>
@@ -281,7 +283,7 @@ export default function Materials() {
                             editDialogRef.current?.close();
                             setIsDialogEditing(false);
                         }}
-                        className='px-4 py-2 border-2 border-makerYellow rounded-lg w-[50%]'
+                        className='px-4 py-2 border-2 border-makerYellow rounded-lg w-[50%] flex-1'
                     >
                         Retornar
                     </button>
