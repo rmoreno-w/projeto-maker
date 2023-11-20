@@ -57,16 +57,6 @@ function AdminLinks({ currentRoute }: LinksProps) {
             <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
 
             <Link
-                href='/stock'
-                className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
-                    ${currentRoute == '/stock' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
-            >
-                Estoque
-            </Link>
-
-            <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
-
-            <Link
                 href='/services'
                 className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
                     ${currentRoute == '/services' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
@@ -95,16 +85,6 @@ function MemberLinks({ currentRoute }: LinksProps) {
                     ${currentRoute == '/materials' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
             >
                 Materiais
-            </Link>
-
-            <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
-
-            <Link
-                href='/stock'
-                className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
-                    ${currentRoute == '/stock' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
-            >
-                Estoque
             </Link>
 
             <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
