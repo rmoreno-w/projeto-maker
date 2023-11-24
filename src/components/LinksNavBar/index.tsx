@@ -47,6 +47,16 @@ function AdminLinks({ currentRoute }: LinksProps) {
             <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
 
             <Link
+                href='/teams'
+                className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
+                    ${currentRoute == '/teams' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
+            >
+                Equipes
+            </Link>
+
+            <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
+
+            <Link
                 href='/materials'
                 className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
                     ${currentRoute == '/materials' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
@@ -105,6 +115,16 @@ function MemberLinks({ currentRoute }: LinksProps) {
                     ${currentRoute == '/orders' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
             >
                 Pedidos
+            </Link>
+
+            <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
+
+            <Link
+                href='/teams'
+                className={`relative mx-4 hover:underline decoration-2 underline-offset-4 decoration-makerLinkDecoration
+                    ${currentRoute == '/teams' ? 'border-b-2 border-b-makerYellow hover:no-underline' : ''}`}
+            >
+                Equipes
             </Link>
 
             <span className='h-4 w-[2px] bg-makerYellow self-center'></span>
