@@ -168,7 +168,7 @@ export default function Services() {
     }
 
     return (
-        <main className=' bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] rounded-3xl overflow-hidden'>
+        <main className='bg-makerBg border-4 border-makerYellow mx-[120px] my-[60px] rounded-3xl overflow-hidden'>
             <div className='py-10 px-24 flex flex-col justify-center gap-3'>
                 <div>
                     <h1 className='text-[24px] font-bold'>Serviços</h1>{' '}
