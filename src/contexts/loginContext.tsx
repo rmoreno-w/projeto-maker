@@ -49,43 +49,42 @@ export function AuthProvider({ children }: authProviderProps) {
     });
 
     async function signIn({ email, password }: { email: string; password: string }) {
-        try {
-            console.log(`${email} e senha ${password}`);
-            await apiClient
-                .post(
-                    '/users/login',
-                    {
-                        username: email,
-                        password,
+        let answer = '';
+        console.log(`${email} e senha ${password}`);
+        await apiClient
+            .post(
+                '/users/login',
+                {
+                    username: email,
+                    password,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    {
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                    }
-                )
-                .then((response) => {
-                    console.log(response.data);
-                    let access_token = response.data.access_token;
-                    let role = response.data.role;
-                    // localStorage.setItem('authRole', role);
-                    // localStorage.setItem('authToken', access_token);
-                    setAuth({
-                        access_token,
-                        role,
-                    });
-                })
-                .catch((e) => console.log(e));
-            return '';
-        } catch (error) {
-            console.log(`Erro no login: ${error}`);
-            setAuth({
-                access_token: '',
-                role: '',
+                }
+            )
+            .then((response) => {
+                console.log(response.data);
+                let access_token = response.data.access_token;
+                let role = response.data.role;
+                // localStorage.setItem('authRole', role);
+                // localStorage.setItem('authToken', access_token);
+                setAuth({
+                    access_token,
+                    role,
+                });
+            })
+            .catch((error) => {
+                console.log(`Erro no login: ${error}`);
+                setAuth({
+                    access_token: '',
+                    role: '',
+                });
+                answer = 'Ops :( erro no login, por favor confirme seus dados';
             });
 
-            return 'Ops :( erro no login, por favor confirme seus dados';
-        }
+        return answer;
     }
 
     function signOut() {

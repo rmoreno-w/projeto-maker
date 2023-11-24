@@ -8,6 +8,7 @@ export default function Home() {
     const { authData, signIn } = useAuth();
 
     const [email, setEmail] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
 
@@ -15,6 +16,8 @@ export default function Home() {
         // console.log(`Emeiu ${email} senha ${password}`);
         if (email && password) {
             const result = await signIn({ email, password });
+            setErrorMessage(result);
+            console.log(result);
 
             if (result == '') router.push('/profile');
         }
@@ -32,6 +35,7 @@ export default function Home() {
 
                     <Input label='Senha' currentValue={password} onChangeValue={setPassword} type='password' />
 
+                    <p className={`text-red-900 text-center ${errorMessage ? 'block' : 'hidden'}`}>{errorMessage}</p>
                     <button
                         className='flex justify-center align-middle border bg-makerYellow p-2 font-medium rounded-xl w-full text-black text-2xl disabled:opacity-40'
                         onClick={handleLoginClick}
