@@ -4,7 +4,30 @@ import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import cloneDeep from 'lodash/cloneDeep';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+interface D3PrintServiceData {
+    plastic_color: string;
+    layer_height: number;
+    scale: number;
+    uses_support: boolean;
+    infill_percentage: number;
+    other_parameters: string;
+}
+
+interface LaserCutServiceData {
+    operation_type: 'engrave' | 'cut' | 'dotted';
+    scale: number;
+}
+
+interface ServiceInOrder {
+    id: number;
+    order_id: number;
+    service_id: { id: number };
+    service_base_price: number;
+    service_price: number;
+    service_data: D3PrintServiceData | LaserCutServiceData;
+}
 
 interface Order {
     id: number;
@@ -17,7 +40,7 @@ interface Order {
     finished_at: Date | null;
     delivered_at: Date | null;
     customer_id: Object;
-    services: Array<any>;
+    services: Array<ServiceInOrder>;
 }
 
 const orderStatusTranslation = {
@@ -94,11 +117,14 @@ export default function Orders() {
     }
 
     async function alterOrder() {
-        apiClient.patch(`/orders/${pickedUpOrder?.id}`, editedFields, {
-            headers: {
-                Authorization: `Bearer ${authData.access_token}`,
-            },
-        });
+        apiClient
+            .patch(`/orders/${pickedUpOrder?.id}`, editedFields, {
+                headers: {
+                    Authorization: `Bearer ${authData.access_token}`,
+                },
+            })
+            .then(() => dialogRef.current?.close())
+            .catch((e) => console.log(e));
     }
 
     return (
@@ -159,18 +185,18 @@ export default function Orders() {
             <dialog
                 onClose={() => dialogRef.current?.close()}
                 ref={dialogRef}
-                className='backdrop:bg-slate-900/60 p-10 bg-makerBg rounded-lg open:flex open:flex-col open:gap-4 open:justify-start'
+                className='backdrop:bg-slate-900/60 p-10 bg-makerBg rounded-lg open:flex open:flex-col open:justify-start'
             >
-                <p className='text-[24px] font-bold'>Detalhes do pedido</p>
+                <p className='text-[28px] font-bold mb-8'>Detalhes do pedido</p>
                 {
-                    <>
-                        <label className='flex flex-col gap-2'>
+                    <section className='flex flex-col gap-3 mb-6'>
+                        <label className='flex flex-col gap-2 font-bold'>
                             Valor total do pedido:
                             <input
                                 disabled
                                 type='number'
                                 value={pickedUpOrder?.price}
-                                className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
                             />
                         </label>
 
@@ -215,176 +241,192 @@ export default function Orders() {
                                 <option value='Paid'>Pago</option>
                             </select>
                         </label>
-                        <p className='font-bold text-[20px]'>Serviços no pedido:</p>
-                    </>
+                    </section>
                 }
-                {pickedUpOrder?.services.map((service, index) => (
-                    <div key={service.id} className='border-l border-makerYellow pl-4 flex flex-col gap-1'>
-                        <p className='font-bold'>
-                            {index + 1} - {service.service_id.id == 1 ? 'Corte a Laser' : 'Impressão 3D'}
-                        </p>
+                <p className='font-bold text-[24px] mb-6'>Serviços no pedido:</p>
+                <section className='flex flex-col gap-6'>
+                    {pickedUpOrder?.services.map((service, index) => (
+                        <article key={service.id} className='border-l border-makerYellow pl-4 flex flex-col gap-3'>
+                            <p className='font-bold'>
+                                {index + 1} - {service.service_id.id == 1 ? 'Corte a Laser' : 'Impressão 3D'}
+                            </p>
 
-                        <label className='flex flex-col gap-2'>
-                            Preço
-                            <input
-                                disabled={authData.role == 'customer'}
-                                type='number'
-                                value={service.service_price}
-                                onChange={(event) => {
-                                    const updatedOrder = { ...pickedUpOrder };
-                                    updatedOrder['services'][index]['service_price'] = Number(event.target.value);
-                                    setPickedUpOrder(updatedOrder);
-                                }}
-                                className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                            />
-                        </label>
+                            <label className='flex flex-col gap-2 font-bold'>
+                                Preço base do serviço
+                                <input
+                                    disabled
+                                    type='number'
+                                    value={service.service_base_price}
+                                    onChange={(event) => {
+                                        const updatedOrder = { ...pickedUpOrder };
+                                        updatedOrder['services'][index]['service_price'] = Number(event.target.value);
+                                        setPickedUpOrder(updatedOrder);
+                                    }}
+                                    className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                />
+                            </label>
 
-                        {service.service_id.id == 1 ? (
-                            <>
-                                <label className='flex flex-col gap-2'>
-                                    Tipo de Operação
-                                    <select
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.operation_type}
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['operation_type'] =
-                                                event.target.value;
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    >
-                                        <option value='engrave'>Gravar</option>
-                                        <option value='cut'>Corte</option>
-                                        <option value='dotted'>Pontilhado</option>
-                                    </select>
-                                </label>
+                            <label className='flex flex-col gap-2 font-bold'>
+                                Preço cotado para o serviço
+                                <input
+                                    disabled={authData.role == 'customer'}
+                                    type='number'
+                                    value={service.service_price}
+                                    onChange={(event) => {
+                                        const updatedOrder = { ...pickedUpOrder };
+                                        updatedOrder['services'][index]['service_price'] = Number(event.target.value);
+                                        setPickedUpOrder(updatedOrder);
+                                    }}
+                                    className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                />
+                            </label>
 
-                                <label className='flex flex-col gap-2'>
-                                    Escala
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        type='number'
-                                        value={service.service_data.scale}
-                                        min={0}
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['scale'] = Number(
-                                                event.target.value
-                                            );
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
-                            </>
-                        ) : (
-                            <>
-                                <label className='flex flex-col gap-2'>
-                                    Cor do Plástico
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.plastic_color}
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['plastic_color'] =
-                                                event.target.value;
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
+                            {service.service_id.id == 1 ? (
+                                <>
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Tipo de Operação
+                                        <select
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.operation_type}
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['operation_type'] =
+                                                    event.target.value;
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        >
+                                            <option value='engrave'>Gravar</option>
+                                            <option value='cut'>Corte</option>
+                                            <option value='dotted'>Pontilhado</option>
+                                        </select>
+                                    </label>
 
-                                <label className='flex flex-col gap-2'>
-                                    Altura da Camada
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.layer_height}
-                                        type='number'
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['layer_height'] = Number(
-                                                event.target.value
-                                            );
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Escala
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            type='number'
+                                            value={service.service_data.scale}
+                                            min={0}
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['scale'] = Number(
+                                                    event.target.value
+                                                );
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
+                                </>
+                            ) : (
+                                <>
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Cor do Plástico
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.plastic_color}
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['plastic_color'] =
+                                                    event.target.value;
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
 
-                                <label className='flex flex-col gap-2'>
-                                    Escala
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.scale}
-                                        type='number'
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['scale'] = Number(
-                                                event.target.value
-                                            );
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Altura da Camada
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.layer_height}
+                                            type='number'
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['layer_height'] =
+                                                    Number(event.target.value);
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
 
-                                <label className='flex gap-2 items-center text-left'>
-                                    Uso de suporte?
-                                    <input
-                                        type='checkbox'
-                                        checked={service.service_data.uses_support}
-                                        onChange={(event) => {
-                                            const negated = !service.service_data.uses_support;
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['uses_support'] = negated;
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='w-4 h-4 cursor-pointer accent-makerYellow/50'
-                                    />
-                                </label>
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Escala
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.scale}
+                                            type='number'
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['scale'] = Number(
+                                                    event.target.value
+                                                );
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
 
-                                <label className='flex flex-col gap-2'>
-                                    Porcentagem de preenchimento (número inteiro)
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.infill_percentage}
-                                        type='number'
-                                        step={1}
-                                        min={0}
-                                        max={100}
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['infill_percentage'] =
-                                                Number(event.target.value);
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
+                                    <label className='flex gap-2 items-center text-left font-bold'>
+                                        Uso de suporte?
+                                        <input
+                                            type='checkbox'
+                                            checked={service.service_data.uses_support}
+                                            onChange={(event) => {
+                                                const negated = !service.service_data.uses_support;
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['uses_support'] =
+                                                    negated;
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='w-4 h-4 cursor-pointer accent-makerYellow/50'
+                                        />
+                                    </label>
 
-                                <label className='flex flex-col gap-2'>
-                                    Outros Parâmetros:
-                                    <input
-                                        disabled={authData.role == 'customer'}
-                                        value={service.service_data.other_parameters}
-                                        onChange={(event) => {
-                                            const updatedOrder = { ...pickedUpOrder };
-                                            updatedOrder['services'][index]['service_data']['other_parameters'] =
-                                                event.target.value;
-                                            setPickedUpOrder(updatedOrder);
-                                        }}
-                                        className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                                    />
-                                </label>
-                            </>
-                        )}
-                    </div>
-                ))}
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Porcentagem de preenchimento (número inteiro)
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.infill_percentage}
+                                            type='number'
+                                            step={1}
+                                            min={0}
+                                            max={100}
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['infill_percentage'] =
+                                                    Number(event.target.value);
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
 
+                                    <label className='flex flex-col gap-2 font-bold'>
+                                        Outros Parâmetros:
+                                        <input
+                                            disabled={authData.role == 'customer'}
+                                            value={service.service_data.other_parameters}
+                                            onChange={(event) => {
+                                                const updatedOrder = { ...pickedUpOrder };
+                                                updatedOrder['services'][index]['service_data']['other_parameters'] =
+                                                    event.target.value;
+                                                setPickedUpOrder(updatedOrder);
+                                            }}
+                                            className='border-2 font-normal bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
+                                        />
+                                    </label>
+                                </>
+                            )}
+                        </article>
+                    ))}
+                </section>
                 {Object.keys(editedFields).length > 0 && authData.role !== 'customer' && (
                     <button
-                        className='px-4 py-2 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
+                        className='px-4 py-2 mt-6 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
                         onClick={alterOrder}
                     >
                         Salvar alterações
@@ -394,63 +436,4 @@ export default function Orders() {
             </dialog>
         </main>
     );
-}
-
-interface serviceDetailsProps {
-    order: Order;
-    editPickedUpOrder: Dispatch<SetStateAction<Order | undefined>>;
-}
-function ServiceDetails({ order, editPickedUpOrder }: serviceDetailsProps) {
-    const { authData } = useAuth();
-
-    const [servicesData, setServicesData] = useState(order?.services);
-
-    useEffect(() => {
-        setServicesData(order?.services);
-        console.log(servicesData);
-    }, [servicesData]);
-
-    return order?.services.map((service, index) => (
-        <div className='border-l border-makerYellow pl-4 flex flex-col gap-1'>
-            <p className='font-bold'>
-                {index + 1} - {service.service_id.id == 1 ? 'Corte a Laser' : 'Impressão 3D'}
-            </p>
-            <label className='flex flex-col gap-2'>
-                Preço Inicial
-                <input
-                    disabled={authData.role == 'customer'}
-                    type='number'
-                    value={service.service_price}
-                    onChange={(event) => {
-                        const updatedServiceArray = [...order.services].filter(
-                            (verifiedservice) => verifiedservice.id !== service.id
-                        );
-                        console.log(updatedServiceArray);
-                        console.log(servicesData);
-                        // const updatedOrder = { ...order, services: };
-                        // editPickedUpOrder(updatedOrder);
-                    }}
-                    className='border-2 bg-transparent border-gray-300 rounded-lg h-12 transition-all duration-300 focus:outline-none focus:ring focus:ring-makerYellow focus:ring-offset-2 focus:ring-offset-makerBg focus:border-makerYellow p-2'
-                />
-            </label>
-            <p>Preço inicial: {service.service_price}</p>
-            <p>Preço cotado: {service.service_price}</p>
-
-            {service.service_id.id == 1 ? (
-                <>
-                    <p>Tipo de operação: {service.service_data.operation_type}</p>
-                    <p>Escala: {service.service_data.scale}</p>
-                </>
-            ) : (
-                <>
-                    <p>Cor do plástico: {service.service_data.plastic_color}</p>
-                    <p>Altura da camada: {service.service_data.layer_height}</p>
-                    <p>Porcentagem de preenchimento: {service.service_data.infill_percentage}</p>
-                    <p>Escala: {service.service_data.scale}</p>
-                    <p>Usa suporte? {service.service_data.uses_support}</p>
-                    <p>Outros Parametros {service.service_data.other_parameters}</p>
-                </>
-            )}
-        </div>
-    ));
 }
