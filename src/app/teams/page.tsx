@@ -3,6 +3,7 @@
 import { Input } from '@/components/Input';
 import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
 interface Team {
@@ -11,9 +12,11 @@ interface Team {
     description: string;
 }
 
+type EditingTeam = Partial<Team>;
+
 export default function Materials() {
     const { authData } = useAuth();
-    const [teams, setTeams] = useState<Team[]>([]);
+    // const [teams, setTeams] = useState<Team[]>([]);
 
     const [dialogTeamId, setDialogTeamId] = useState(0);
     const [dialogTeamArea, setDialogTeamArea] = useState('');
@@ -26,14 +29,14 @@ export default function Materials() {
 
     useEffect(() => {
         if (isDialogEditing == true) {
-            let originalObject = teams.find((team) => team.id == dialogTeamId);
+            let originalObject = teams?.find((team) => team.id == dialogTeamId);
 
             const newEditingObject = {
                 area: dialogTeamArea !== originalObject?.area && dialogTeamArea,
                 description: dialogTeamDescription !== originalObject?.description && dialogTeamDescription,
             };
 
-            let currentlyEditedFields: Partial<Team> = {};
+            let currentlyEditedFields: EditingTeam = {};
             for (let [key, value] of Object.entries(newEditingObject)) {
                 // console.log(value);
                 if (value !== false) {
@@ -52,33 +55,115 @@ export default function Materials() {
         }
     }, [dialogTeamArea, dialogTeamDescription]);
 
-    useEffect(() => {
-        apiClient
-            .get<Team[]>('/teams', {
-                headers: {
-                    Authorization: `Bearer ${authData.access_token}`,
-                    // authData.access_token !== ''
-                    //     ? `Bearer ${authData.access_token}`
-                    //     : `Bearer ${alternativeTokenLocalStorage}`,
-                },
-            })
-            .then((response) => {
-                console.log(response.data);
-                setTeams(response.data);
-            })
-            .catch((e) => {
-                console.log(e);
-            });
-    }, []);
+    const {
+        data: teams,
+        isLoading,
+        refetch,
+    } = useQuery({
+        queryKey: ['teams'],
+        queryFn: async () => {
+            return apiClient
+                .get<Team[]>('/teams', {
+                    headers: {
+                        Authorization: `Bearer ${authData.access_token}`,
+                        // authData.access_token !== ''
+                        //     ? `Bearer ${authData.access_token}`
+                        //     : `Bearer ${alternativeTokenLocalStorage}`,
+                    },
+                })
+                .then((response) => {
+                    console.log(response.data);
+                    return response.data;
+                })
+                .catch((e) => {
+                    console.log(e);
+                });
+        },
+    });
+
+    const { mutate: createTeamMutation, isPending: isTeamCreationPending } = useMutation({
+        mutationFn: async () => {
+            const newTeam = {
+                area: dialogTeamArea,
+                description: dialogTeamDescription,
+            };
+            apiClient
+                .post(`/teams/`, newTeam, {
+                    headers: { Authorization: `Bearer ${authData.access_token}` },
+                })
+                .then((data) => {
+                    setEditFields(false);
+
+                    console.log(data);
+                    // const updatedTeams = [...teams, newTeamToInsert];
+                    // setTeams(updatedTeams);
+
+                    // console.log(newMaterial);
+                });
+        },
+        onSuccess: async (data) => {
+            console.log(data);
+            await refetch();
+            editDialogRef.current?.close();
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+    });
+
+    const { mutate: deleteTeamMutation, isPending: isTeamDeletionPending } = useMutation({
+        mutationFn: async () => {
+            apiClient
+                .delete(`/teams/${dialogTeamId}`, {
+                    headers: {
+                        Authorization: `Bearer ${authData.access_token}`,
+                    },
+                })
+                .then((result) => {
+                    return result.data;
+                });
+        },
+        onSuccess: async (data) => {
+            console.log(data);
+            await refetch();
+            editDialogRef.current?.close();
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+    });
+
+    const { mutate: updateTeamMutation, isPending: isTeamUpdatePending } = useMutation({
+        mutationFn: async () => {
+            apiClient
+                .patch(`/teams/${dialogTeamId}`, editedFields, {
+                    headers: {
+                        Authorization: `Bearer ${authData.access_token}`,
+                    },
+                })
+                .then((result) => {
+                    return result.data;
+                });
+        },
+        onSuccess: async (data) => {
+            console.log(data);
+            await refetch();
+            editDialogRef.current?.close();
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+    });
 
     function openCreateMaterialModal() {
-        setDialogTeamId(0);
         setDialogTeamArea('');
         setDialogTeamDescription('');
         editDialogRef.current?.showModal();
     }
 
     function showTeamDetails(id: number) {
+        if (!teams) return;
+
         const foundTeam = teams.find((team) => team.id == id);
 
         setDialogTeamArea(foundTeam!.area);
@@ -87,71 +172,6 @@ export default function Materials() {
 
         editDialogRef.current?.showModal();
         setIsDialogEditing(true);
-    }
-
-    // async function updateTeam() {
-    //     apiClient
-    //         .patch(`/teams/${dialogTeamId}`, editedFields, {
-    //             headers: { Authorization: `Bearer ${authData.access_token}` },
-    //         })
-    //         .then((data) => {
-    //             setEditFields(false);
-    //             setIsDialogEditing(false);
-
-    //             const updatedTeams = teams.map((team) => {
-    //                 return team.id == dialogTeamId ? { ...teams, ...editedFields } : team;
-    //             });
-
-    //             setTeams(updatedTeams);
-    //             // console.log(updatedMaterials);
-
-    //             editDialogRef.current?.close();
-    //         })
-    //         .catch((e) => console.log(e));
-    // }
-
-    async function createNewTeam() {
-        const newTeam = {
-            area: dialogTeamArea,
-            description: dialogTeamDescription,
-        };
-        apiClient
-            .post(`/teams/`, newTeam, {
-                headers: { Authorization: `Bearer ${authData.access_token}` },
-            })
-            .then((data) => {
-                setEditFields(false);
-
-                const newTeamToInsert = { ...newTeam, id: data.id };
-                const updatedTeams = [...teams, newTeamToInsert];
-                setTeams(updatedTeams);
-
-                // console.log(newMaterial);
-                editDialogRef.current?.close();
-            })
-            .catch((e) => console.log(e));
-    }
-
-    function removeTeam() {
-        // console.log(`id: ${userId}, type: ${userType}`);
-        apiClient
-            .delete(`/teams/${dialogTeamId}`, {
-                headers: {
-                    Authorization: `Bearer ${authData.access_token}`,
-                },
-            })
-            .then((result) => {
-                console.log(result);
-
-                const updatedTeamsList = teams.filter((team) => team.id != dialogTeamId);
-                // console.log(typeof updatedCustomersList);
-                setTeams(updatedTeamsList);
-                // setAreFieldsEdited(false);}
-                editDialogRef.current?.close();
-            })
-            .catch((e) => {
-                console.log(e);
-            });
     }
 
     return (
@@ -169,7 +189,9 @@ export default function Materials() {
                     )}
                 </div>
 
-                {teams.length != 0 ? (
+                {isLoading && !teams && <p>Carregando...</p>}
+
+                {!isLoading && teams ? (
                     <div className='flex flex-col gap-4'>
                         <div className='grid grid-cols-2 w-full gap-2 text-center'>
                             <p className='border-b-2 py-2 border-makerGray font-bold'>Área</p>
@@ -226,8 +248,8 @@ export default function Materials() {
                     {!isDialogEditing && (
                         <button
                             className='px-4 py-2 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
-                            disabled={!dialogTeamArea || !dialogTeamDescription}
-                            onClick={() => createNewTeam()}
+                            disabled={!dialogTeamArea || !dialogTeamDescription || isTeamCreationPending}
+                            onClick={() => createTeamMutation()}
                         >
                             Criar Equipe
                         </button>
@@ -236,8 +258,8 @@ export default function Materials() {
                         <>
                             <button
                                 className='px-4 py-2 bg-makerYellow rounded-lg w-[50%] text-makerBg disabled:bg-makerGray disabled:text-makerBg transition-all duration-150'
-                                disabled={!isAnyFieldEdited}
-                                // onClick={() => updateTeam()}
+                                disabled={!isAnyFieldEdited || isTeamUpdatePending}
+                                onClick={() => updateTeamMutation()}
                             >
                                 Salvar Edição
                             </button>
@@ -245,7 +267,8 @@ export default function Materials() {
                             {authData.role === 'admin' && (
                                 <button
                                     className='px-4 py-2 bg-[#BC2119] rounded-lg w-[50%] text-makerBg'
-                                    onClick={removeTeam}
+                                    disabled={isTeamDeletionPending || isTeamUpdatePending}
+                                    onClick={() => deleteTeamMutation()}
                                 >
                                     Remover Equipe
                                 </button>
@@ -257,6 +280,7 @@ export default function Materials() {
                             editDialogRef.current?.close();
                             setIsDialogEditing(false);
                         }}
+                        disabled={isTeamDeletionPending || isTeamUpdatePending}
                         className='px-4 py-2 border-2 border-makerYellow rounded-lg w-[50%]'
                     >
                         Retornar
