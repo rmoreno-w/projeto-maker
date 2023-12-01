@@ -2,9 +2,9 @@ import { useAuth } from '@/contexts/loginContext';
 import { apiClient } from '@/services/axios';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { BalanceChart } from '../BalanceChart';
+import { MaterialsReport } from '../MaterialsReport';
 
-export function BalanceChartTab() {
+export function MaterialsReportTab() {
     const [initialDate, setInitialDate] = useState('');
     const [finalDate, setFinalDate] = useState('');
     const [chartData, setChartData] = useState();
@@ -41,7 +41,7 @@ export function BalanceChartTab() {
                     onClick={() =>
                         apiClient
                             .post(
-                                '/reports/balance',
+                                '/reports/materials',
                                 {
                                     initial_date: dayjs(initialDate + 'T20:59').toISOString(),
                                     final_date: dayjs(
@@ -65,10 +65,11 @@ export function BalanceChartTab() {
 
             {chartData && (
                 <>
-                    {/* <p>{JSON.stringify(chartData)}</p> */}
-                    <div className='h-[400px] flex justify-center mb-6 px-5 overflow-hidden text-makerYellow border border-makerYellow'>
+                    {/* <p>{JSON.stringify(chartData, null, 4)}</p> */}
+                    <MaterialsReport data={chartData} />
+                    {/* <div className='h-[400px] flex justify-center mb-6 px-5 overflow-hidden text-makerYellow border border-makerYellow'>
                         <BalanceChart data={chartData} />
-                    </div>
+                    </div> */}
                 </>
             )}
         </section>
