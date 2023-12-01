@@ -4,9 +4,6 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { BalanceChart } from '../BalanceChart';
 
-interface FinancialData {
-    [key: string]: number;
-}
 export function BalanceChartTab() {
     const [initialDate, setInitialDate] = useState('');
     const [finalDate, setFinalDate] = useState('');
@@ -24,6 +21,7 @@ export function BalanceChartTab() {
                         value={initialDate}
                         onChange={(e) => setInitialDate(dayjs(e.target.value).format('YYYY-MM-DD'))}
                         className='bg-transparent px-4 py-2 border-b border-makerYellow'
+                        max={dayjs().format('YYYY-MM-DD')}
                     />
                 </label>
 
@@ -67,9 +65,9 @@ export function BalanceChartTab() {
 
             {chartData && (
                 <>
-                    <p>{JSON.stringify(chartData)}</p>
+                    {/* <p>{JSON.stringify(chartData)}</p> */}
                     <div className='h-[400px] flex justify-center mb-6 px-5 overflow-hidden text-makerYellow border border-makerYellow'>
-                        <BalanceChart />
+                        <BalanceChart data={chartData} />
                     </div>
                 </>
             )}

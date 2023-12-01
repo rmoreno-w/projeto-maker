@@ -1,21 +1,30 @@
 import * as d3 from 'd3';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-export function BalanceChart() {
-    const [data, setData] = useState({
-        '10/2023': 2025,
-        '11/2023': 550,
-    });
+interface FinancialData {
+    month: string;
+    value: number;
+}
+
+interface BalanceChartProps {
+    data: FinancialData[];
+}
+
+export function BalanceChart({ data }: BalanceChartProps) {
+    // const [data, setData] = useState({
+    //     '10/2023': 2025,
+    //     '11/2023': 550,
+    // });
 
     const width = 400;
     const height = 300;
 
     const svgRef = useRef<SVGSVGElement>(null);
 
-    const dummyData = [
-        { month: '10/2023', value: 125.0 },
-        { month: '11/2023', value: 135.9 },
-    ];
+    // const dummyData = [
+    //     { month: '10/2023', value: 125.0 },
+    //     { month: '11/2023', value: 135.9 },
+    // ];
 
     const margins = {
         top: 20,
@@ -24,11 +33,11 @@ export function BalanceChart() {
         left: 20,
     };
 
-    console.log(dummyData.map((d) => d.value));
+    console.log(data.map((d) => d.value));
 
     const yScale = d3
         .scaleLinear()
-        .domain([0, d3.max(dummyData.map((d) => d.value)) as number]) // d3.extent pega os minimos e maximos
+        .domain([0, d3.max(data.map((d) => d.value)) as number]) // d3.extent pega os minimos e maximos
         .range([height - margins.bottom, margins.top]);
 
     useEffect(() => {
@@ -43,7 +52,7 @@ export function BalanceChart() {
             .scaleBand()
             // .domain(d3.extent(dummyData.map((d) => d[0]))) // d3.extent pega os minimos e maximos
             // .domain([0, d3.max((d) => d.month)]) // d3.extent pega os minimos e maximos
-            .domain(dummyData.map((d) => d.month)) // d3.extent pega os minimos e maximos
+            .domain(data.map((d) => d.month)) // d3.extent pega os minimos e maximos
             .range([margins.left, width - margins.right])
             .padding(0.2);
 
@@ -54,7 +63,7 @@ export function BalanceChart() {
             .attr('class', 'text-gray-400');
 
         svg.selectAll('.bar')
-            .data(dummyData)
+            .data(data)
             .enter()
             .append('rect')
             .attr('class', 'bar')
@@ -77,12 +86,12 @@ export function BalanceChart() {
         .scaleBand()
         // .domain(d3.extent(dummyData.map((d) => d[0]))) // d3.extent pega os minimos e maximos
         // .domain([0, d3.max((d) => d.month)]) // d3.extent pega os minimos e maximos
-        .domain(dummyData.map((d) => d.month)) // d3.extent pega os minimos e maximos
+        .domain(data.map((d) => d.month)) // d3.extent pega os minimos e maximos
         .range([margins.left, width - margins.right])
         .padding(0.2);
 
-    const bars = d3.area();
-    const result = dummyData;
+    // const bars = d3.area();
+    // const result = data;
     return (
         <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`}>
             {/* <path d={result} fill='none' stroke='currentColor' /> */}
